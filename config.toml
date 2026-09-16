@@ -1,0 +1,34 @@
+[data]
+tickers = ["AAPL", "MSFT", "KO"]
+start = "2015-01-01"
+end = "2025-01-01"
+cache_dir = ".cache"
+cache_max_age_days = 1
+
+[portfolio]
+initial_amount = 10000
+dca_amount = 500
+dca_frequency = "monthly"   # none|daily|weekly|biweekly|monthly|quarterly|yearly
+reinvest_dividends = true
+fractional_shares = true
+
+[video]
+fps = 30
+duration_seconds = 45
+aspect = "16:9"             # 16:9 | 9:16
+end_hold_seconds = 3
+
+[theme]
+name = "midnight"
+
+[panels]
+stats = true
+invested_line = true
+dividend_line = true
+event_markers = true
+intro_card = true
+outro_card = true
+
+[output]
+name = "comparison"
+output_dir = "output"

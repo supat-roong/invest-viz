@@ -1,0 +1,7 @@
+[tool.pytest.ini_options]
+# Make the `investment_video` package importable without per-test sys.path hacks.
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = [
+    "integration: needs external tooling — network access to Yahoo Finance, or ffmpeg on PATH. Deselect with `-m 'not integration'`.",
+]
