@@ -8,6 +8,7 @@ from __future__ import annotations
 import os
 import time
 
+import matplotlib.dates as mdates
 import numpy as np
 import pandas as pd
 import pytest
@@ -370,5 +371,52 @@ def test_head_labels_stay_inside_the_chart(tmp_path, panels):
             box = label.get_window_extent(canvas)
             assert box.x0 >= bounds.x0
             assert box.x1 <= bounds.x1 + 1.0
+    finally:
+        renderer.close()
+
+
+# --- x-axis never labels a date the comparison never reaches ----------------
+
+def test_x_axis_labels_stop_at_the_end_of_the_data(tmp_path, panels):
+    """The head-label gutter widens xlim; ticks must not follow it out.
+
+    A ten-year run ending 2025-01-01 was drawing a labelled 2026 tick, which
+    reads as though the comparison covers a year it never reaches.
+    """
+    series = [make_series(ticker, bars=2516, growth=1.0 + 0.4 * i,
+                          rank=i + 1, seed=i)
+              for i, ticker in enumerate(('AAPL', 'MSFT', 'KO'))]
+    state = make_state(series)
+    renderer = ChartRenderer(get_theme('midnight'), panels, LANDSCAPE)
+    try:
+        renderer.render(state, tmp_path / 'frame.png')
+        axis = (renderer.ax_dividends or renderer.ax).xaxis
+        last = mdates.date2num(state.x_max)
+
+        assert axis.get_view_interval()[1] > last, 'expected a label gutter'
+
+        labelled = [text for location, text in
+                    zip(axis.get_majorticklocs(),
+                        (t.get_text() for t in axis.get_majorticklabels()))
+                    if text]
+        assert labelled, 'every tick label was blanked'
+        visible_locations = [location for location, text in
+                             zip(axis.get_majorticklocs(),
+                                 (t.get_text() for t in axis.get_majorticklabels()))
+                             if text]
+        assert max(visible_locations) <= last
+    finally:
+        renderer.close()
+
+
+def test_format_date_tick_blanks_beyond_the_data(tmp_path, panels):
+    state = default_state()
+    renderer = ChartRenderer(get_theme('midnight'), panels, LANDSCAPE)
+    try:
+        renderer.render(state, tmp_path / 'frame.png')
+        inside = mdates.date2num(state.x_max) - 400
+        outside = mdates.date2num(state.x_max) + 400
+        assert renderer._format_date_tick(inside) != ''
+        assert renderer._format_date_tick(outside) == ''
     finally:
         renderer.close()
