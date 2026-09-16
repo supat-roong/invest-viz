@@ -8,3 +8,4 @@ tmp/
 output/*.mp4
 output/*.gif
 .DS_Store
+docs/
