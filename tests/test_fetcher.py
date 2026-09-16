@@ -11,10 +11,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from investment_video import fetcher
-from investment_video.cache import PriceCache
-from investment_video.fetcher import FetchError, align_calendar, fetch
-from investment_video.types import CLOSE, DIVIDENDS, PRICE_COLUMNS, SPLITS
+from invest_viz import fetcher
+from invest_viz.cache import PriceCache
+from invest_viz.fetcher import FetchError, align_calendar, fetch
+from invest_viz.types import CLOSE, DIVIDENDS, PRICE_COLUMNS, SPLITS
 
 YF_FIELDS = ['Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume',
              'Dividends', 'Stock Splits']
@@ -211,7 +211,7 @@ def test_retry_exhausted_falls_back_to_stale_with_warning(
 
     calls = patch_download(monkeypatch, always_fails)
 
-    with caplog.at_level(logging.WARNING, logger='investment_video.fetcher'):
+    with caplog.at_level(logging.WARNING, logger='invest_viz.fetcher'):
         data = fetch(['AAPL'], START, END, cache=cache, max_retries=3)
 
     assert len(calls) == 3
@@ -259,7 +259,7 @@ def test_mixed_currencies_warn_without_conversion(monkeypatch, caplog):
     })
     patch_download(monkeypatch, lambda *a, **k: raw)
 
-    with caplog.at_level(logging.WARNING, logger='investment_video.fetcher'):
+    with caplog.at_level(logging.WARNING, logger='invest_viz.fetcher'):
         data = fetch(['AAPL', 'PTT.BK'], START, END)
 
     assert data['AAPL'].currency == 'USD'
@@ -274,7 +274,7 @@ def test_single_currency_does_not_warn(monkeypatch, caplog):
                  'MSFT': block(index, [20, 21, 22])})
     patch_download(monkeypatch, lambda *a, **k: raw)
 
-    with caplog.at_level(logging.WARNING, logger='investment_video.fetcher'):
+    with caplog.at_level(logging.WARNING, logger='invest_viz.fetcher'):
         fetch(['AAPL', 'MSFT'], START, END)
 
     assert not any('currencies' in record.message for record in caplog.records)

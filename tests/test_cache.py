@@ -7,8 +7,8 @@ from datetime import datetime, timedelta, timezone
 import pandas as pd
 import pytest
 
-from investment_video.cache import PriceCache, decode_ticker, encode_ticker
-from investment_video.types import CLOSE, DIVIDENDS, PRICE_COLUMNS, SPLITS
+from invest_viz.cache import PriceCache, decode_ticker, encode_ticker
+from invest_viz.types import CLOSE, DIVIDENDS, PRICE_COLUMNS, SPLITS
 
 EXOTIC = ['^GSPC', 'BTC-USD', 'THB=X', 'PTT.BK', 'AAPL']
 

@@ -5,7 +5,7 @@ import re
 
 import pytest
 
-from investment_video.themes import (MAX_SERIES, get_theme, is_dark,
+from invest_viz.themes import (MAX_SERIES, get_theme, is_dark,
                                      list_themes)
 
 HEX = re.compile(r'^#[0-9a-f]{6}$')

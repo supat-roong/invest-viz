@@ -14,11 +14,11 @@ import pandas as pd
 import pytest
 from PIL import Image
 
-from investment_video.config import ASPECT_RESOLUTIONS, PanelsConfig
-from investment_video.renderer import (ChartRenderer, format_money,
+from invest_viz.config import ASPECT_RESOLUTIONS, PanelsConfig
+from invest_viz.renderer import (ChartRenderer, format_money,
                                        format_percent, resolve_label_positions)
-from investment_video.themes import get_theme, list_themes
-from investment_video.types import (EventKind, FrameState, MarketEvent,
+from invest_viz.themes import get_theme, list_themes
+from invest_viz.types import (EventKind, FrameState, MarketEvent,
                                     SeriesSlice, TickerStats)
 
 LANDSCAPE = ASPECT_RESOLUTIONS['16:9']

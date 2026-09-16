@@ -11,12 +11,12 @@ import inspect
 import pandas as pd
 import pytest
 
-from investment_video import cards
-from investment_video.config import Config, apply_overrides, build_parser
-from investment_video.generator import _summary, build_spec, outro_stats
-from investment_video.portfolio import simulate
-from investment_video.themes import get_theme
-from investment_video.types import (DcaFrequency, PortfolioSpec, PriceData)
+from invest_viz import cards
+from invest_viz.config import Config, apply_overrides, build_parser
+from invest_viz.generator import _summary, build_spec, outro_stats
+from invest_viz.portfolio import simulate
+from invest_viz.themes import get_theme
+from invest_viz.types import (DcaFrequency, PortfolioSpec, PriceData)
 
 
 def _prices(ticker: str, closes: list) -> PriceData:

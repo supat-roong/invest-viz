@@ -12,8 +12,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from investment_video import timeline
-from investment_video.types import (
+from invest_viz import timeline
+from invest_viz.types import (
     EventKind,
     MarketEvent,
     PortfolioHistory,

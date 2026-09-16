@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from investment_video.types import PRICE_COLUMNS, PriceData
+from invest_viz.types import PRICE_COLUMNS, PriceData
 
 FIXTURE_DIR = Path(__file__).parent / 'fixtures'
 

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from investment_video.config import (ASPECT_RESOLUTIONS, Config, apply_overrides,
+from invest_viz.config import (ASPECT_RESOLUTIONS, Config, apply_overrides,
                                      build_config, build_parser, load_config,
                                      validate)
 

@@ -1,5 +1,5 @@
 [tool.pytest.ini_options]
-# Make the `investment_video` package importable without per-test sys.path hacks.
+# Make the `invest_viz` package importable without per-test sys.path hacks.
 pythonpath = ["src"]
 testpaths = ["tests"]
 markers = [

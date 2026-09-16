@@ -7,9 +7,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from investment_video.portfolio import simulate
-from investment_video.stats import compute_stats, max_drawdown, rank_stats, xirr
-from investment_video.types import (
+from invest_viz.portfolio import simulate
+from invest_viz.stats import compute_stats, max_drawdown, rank_stats, xirr
+from invest_viz.types import (
     PRICE_COLUMNS,
     DcaFrequency,
     PortfolioSpec,

@@ -4,10 +4,10 @@ from __future__ import annotations
 import pytest
 from PIL import Image
 
-from investment_video.cards import render_intro, render_outro
-from investment_video.config import ASPECT_RESOLUTIONS
-from investment_video.themes import get_theme, list_themes
-from investment_video.types import TickerStats
+from invest_viz.cards import render_intro, render_outro
+from invest_viz.config import ASPECT_RESOLUTIONS
+from invest_viz.themes import get_theme, list_themes
+from invest_viz.types import TickerStats
 
 LANDSCAPE = ASPECT_RESOLUTIONS['16:9']
 PORTRAIT = ASPECT_RESOLUTIONS['9:16']

@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from investment_video.portfolio import contribution_dates, simulate
-from investment_video.types import (
+from invest_viz.portfolio import contribution_dates, simulate
+from invest_viz.types import (
     PRICE_COLUMNS,
     DcaFrequency,
     EventKind,

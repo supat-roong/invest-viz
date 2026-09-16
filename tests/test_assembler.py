@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from investment_video import assembler
+from invest_viz import assembler
 
 
 class _FakeCompleted:
