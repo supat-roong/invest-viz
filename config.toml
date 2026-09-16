@@ -17,6 +17,8 @@ fps = 30
 duration_seconds = 45
 aspect = "16:9"             # 16:9 | 9:16
 end_hold_seconds = 3
+intro_seconds = 2.5
+outro_seconds = 4
 
 [theme]
 name = "midnight"
