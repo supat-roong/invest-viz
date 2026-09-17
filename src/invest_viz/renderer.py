@@ -52,6 +52,12 @@ EVENT_MARKER_POINTS = {'dividend': 3.4, 'split': 6.0}
 MIN_LABEL_GAP_PX = 33.0
 LABEL_OFFSET_PX = 13.0
 
+#: The dividend strip is a fifth of the chart's height, so its head labels run
+#: smaller and pack tighter than the ones on the main chart.
+DIVIDEND_LABEL_FONT_POINTS = 11.0
+DIVIDEND_LABEL_GAP_PX = 17.0
+DIVIDEND_HEAD_MARKER_POINTS = 4.5
+
 #: Head labels live inside the axes, in a gutter reserved on the right so
 #: they never flip sides part-way through the animation. The gutter is sized
 #: from the widest label the frame can produce, clamped to this fraction of
@@ -164,14 +170,16 @@ class _SeriesArtists:
     """The reusable artists belonging to one ticker."""
 
     __slots__ = ('value_line', 'head_marker', 'head_label', 'dividend_line',
-                 'event_markers')
+                 'dividend_marker', 'dividend_label', 'event_markers')
 
     def __init__(self, value_line, head_marker, head_label, dividend_line,
-                 event_markers):
+                 dividend_marker, dividend_label, event_markers):
         self.value_line = value_line
         self.head_marker = head_marker
         self.head_label = head_label
         self.dividend_line = dividend_line
+        self.dividend_marker = dividend_marker
+        self.dividend_label = dividend_label
         self.event_markers = event_markers
 
 
@@ -189,6 +197,7 @@ class ChartRenderer:
         width, height = self.resolution
         self.scale = min(width, height) / BASE_SHORT_EDGE
         self.min_label_gap = MIN_LABEL_GAP_PX * self.scale
+        self.dividend_label_gap = DIVIDEND_LABEL_GAP_PX * self.scale
         self.portrait = height > width
 
         #: ticker -> resolved head-label y in pixels, refreshed by render().
@@ -361,6 +370,8 @@ class ChartRenderer:
             artists.head_label.remove()
             if artists.dividend_line is not None:
                 artists.dividend_line.remove()
+                artists.dividend_marker.remove()
+                artists.dividend_label.remove()
             for marker in artists.event_markers.values():
                 marker.remove()
         self._series.clear()
@@ -395,11 +406,24 @@ class ChartRenderer:
             ha='left', transform=IdentityTransform(), clip_on=False, zorder=6)
 
         dividend_line = None
+        dividend_marker = None
+        dividend_label = None
         if self.ax_dividends is not None:
             dividend_line = Line2D(
                 [], [], color=color, linewidth=DIVIDEND_LINE_WIDTH * self.scale,
                 linestyle=':', zorder=4)
             self.ax_dividends.add_line(dividend_line)
+            dividend_marker = Line2D(
+                [], [], color=color, marker='o', linestyle='none',
+                markersize=DIVIDEND_HEAD_MARKER_POINTS * self.scale,
+                markeredgecolor=theme.surface,
+                markeredgewidth=1.2 * self.scale, zorder=5)
+            self.ax_dividends.add_line(dividend_marker)
+            dividend_label = self.ax_dividends.text(
+                0, 0, '', color=theme.text, family=theme.font,
+                fontsize=DIVIDEND_LABEL_FONT_POINTS * self.scale,
+                va='center', ha='left', transform=IdentityTransform(),
+                clip_on=False, zorder=6)
 
         event_markers = {}
         if self.panels.event_markers:
@@ -413,7 +437,8 @@ class ChartRenderer:
                 event_markers[kind] = artist
 
         return _SeriesArtists(value_line, head_marker, head_label,
-                              dividend_line, event_markers)
+                              dividend_line, dividend_marker, dividend_label,
+                              event_markers)
 
     def _panel_text(self, x: float, y: float, text: str, color: str,
                     fontsize: float, ha: str = 'left', va: str = 'center',
@@ -491,6 +516,7 @@ class ChartRenderer:
         self._update_axes(state)
         self._update_series(state)
         self._update_labels(state)
+        self._update_dividend_labels(state)
         self._update_panel(state)
         self.date_text.set_text(state.date.strftime('%Y-%m-%d'))
 
@@ -532,6 +558,8 @@ class ChartRenderer:
         breathe by a pixel every time a value gains a digit.
         """
         longest = max((len(s.ticker) for s in state.series), default=4)
+        if self.panels.invested_line:
+            longest = max(longest, len('invested'))
         characters = longest + 2 + len(format_money(state.y_max, self.currency))
         needed = (characters * CHAR_WIDTH * LABEL_FONT_POINTS * self.scale
                   * DPI / 72.0) + (LABEL_OFFSET_PX + 24) * self.scale
@@ -651,7 +679,8 @@ class ChartRenderer:
                 x_data = _to_numbers(first.dates)[-1]
                 y_data = float(first.invested[-1])
                 px, py = transform.transform((x_data, y_data))
-                self._invested_label.set_text('invested')
+                self._invested_label.set_text(
+                    f'invested  {format_money(y_data, self.currency)}')
                 entries.append((self._invested_label, px, py))
             else:
                 self._invested_label.set_text('')
@@ -670,6 +699,45 @@ class ChartRenderer:
                 artist.set_ha('right')
             if artist is not self._invested_label:
                 self.label_positions[text.split('  ')[0]] = y
+
+    def _update_dividend_labels(self, state: FrameState) -> None:
+        """Direct-label each dividend line with the cash it has paid out.
+
+        The strip is short, so positions are packed with a smaller gap than
+        the main chart and the whole block is clamped inside the axes rather
+        than allowed to spill onto the chart or the date ticks.
+        """
+        if self.ax_dividends is None:
+            return
+        transform = self.ax_dividends.transData
+        entries = []
+        for slice_ in state.series:
+            artists = self._series[slice_.ticker]
+            total = (float(slice_.cum_dividends[-1])
+                     if len(slice_.cum_dividends) else float('nan'))
+            if not len(slice_.dates) or not np.isfinite(total):
+                artists.dividend_label.set_text('')
+                artists.dividend_marker.set_data((), ())
+                continue
+            x_data = _to_numbers(slice_.dates)[-1]
+            artists.dividend_marker.set_data([x_data], [total])
+            artists.dividend_label.set_text(format_money(total, self.currency))
+            entries.append((artists.dividend_label,
+                            *transform.transform((x_data, total))))
+
+        if not entries:
+            return
+        resolved = resolve_label_positions([entry[2] for entry in entries],
+                                           self.dividend_label_gap)
+        bounds = self.ax_dividends.get_window_extent()
+        half = DIVIDEND_LABEL_FONT_POINTS * self.scale * DPI / 72.0 / 2.0
+        low, high = bounds.y0 + half, bounds.y1 - half
+        overflow = max(0.0, (max(resolved) - min(resolved)) - (high - low))
+        if overflow:  # taller than the strip: keep the block centred on it
+            low, high = low - overflow / 2.0, high + overflow / 2.0
+        shift = max(low - min(resolved), min(0.0, high - max(resolved)))
+        for (artist, px, _py), y in zip(entries, resolved):
+            artist.set_position((px + LABEL_OFFSET_PX * self.scale, y + shift))
 
     def _update_panel(self, state: FrameState) -> None:
         if self.panel_ax is None:

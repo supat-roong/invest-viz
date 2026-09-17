@@ -420,3 +420,104 @@ def test_format_date_tick_blanks_beyond_the_data(tmp_path, panels):
         assert renderer._format_date_tick(outside) == ''
     finally:
         renderer.close()
+
+
+# --- amount labels on the invested and dividend lines -----------------------
+
+def test_invested_line_is_labelled_with_its_amount(tmp_path, panels):
+    """The dashed baseline names itself and says how much has gone in."""
+    state = default_state()
+    renderer = ChartRenderer(get_theme('midnight'), panels, LANDSCAPE)
+    try:
+        renderer.render(state, tmp_path / 'invested.png')
+        text = renderer._invested_label.get_text()
+        assert text.startswith('invested')
+        assert format_money(float(state.series[0].invested[-1]), 'USD') in text
+    finally:
+        renderer.close()
+
+
+def test_dividend_lines_are_labelled_with_their_amount(tmp_path, panels):
+    state = default_state()
+    renderer = ChartRenderer(get_theme('midnight'), panels, LANDSCAPE)
+    try:
+        renderer.render(state, tmp_path / 'dividends.png')
+        for slice_ in state.series:
+            artists = renderer._series[slice_.ticker]
+            expected = format_money(float(slice_.cum_dividends[-1]), 'USD')
+            assert artists.dividend_label.get_text() == expected
+    finally:
+        renderer.close()
+
+
+def test_dividend_label_identity_comes_from_a_coloured_marker(tmp_path, panels):
+    """Label text stays a text colour; the marker beside it carries the series."""
+    renderer = ChartRenderer(get_theme('paper'), panels, LANDSCAPE)
+    try:
+        renderer.render(default_state(), tmp_path / 'dividends.png')
+        for ticker, artists in renderer._series.items():
+            colour = renderer.color_for_ticker(ticker)
+            assert artists.dividend_marker.get_color() == colour
+            assert artists.dividend_label.get_color() != colour
+    finally:
+        renderer.close()
+
+
+def test_dividend_labels_do_not_overlap(tmp_path, panels):
+    """Two near-identical dividend totals must still get two readable labels."""
+    a = make_series('AAA', rank=1, seed=1)
+    b = make_series('BBB', rank=2, seed=2)
+    renderer = ChartRenderer(get_theme('midnight'), panels, LANDSCAPE)
+    try:
+        renderer.render(make_state([a, b]), tmp_path / 'dividends.png')
+        ys = [renderer._series[t].dividend_label.get_position()[1]
+              for t in ('AAA', 'BBB')]
+        assert abs(ys[0] - ys[1]) >= renderer.dividend_label_gap - 1e-6
+    finally:
+        renderer.close()
+
+
+def test_dividend_labels_stay_inside_the_dividend_strip(tmp_path, panels):
+    """Eight series' labels must not spill onto the chart or the date axis."""
+    tickers = ('AAPL', 'MSFT', 'KO', 'SPY', 'QQQ', 'GOOGL', 'AMZN', 'NVDA')
+    renderer = ChartRenderer(get_theme('midnight'), panels, LANDSCAPE)
+    try:
+        renderer.render(default_state(tickers), tmp_path / 'eight.png')
+        canvas = renderer.fig.canvas.get_renderer()
+        bounds = renderer.ax_dividends.get_window_extent()
+        for artists in renderer._series.values():
+            box = artists.dividend_label.get_window_extent(canvas)
+            assert box.y0 >= bounds.y0 - 1.0
+            assert box.y1 <= bounds.y1 + 1.0
+            assert box.x1 <= bounds.x1 + 1.0
+    finally:
+        renderer.close()
+
+
+def test_dividend_label_is_blank_for_an_empty_slice(tmp_path, panels):
+    empty = SeriesSlice(
+        ticker='EMPTY', dates=np.array([], dtype='datetime64[ns]'),
+        values=np.array([]), invested=np.array([]),
+        cum_dividends=np.array([]), events=(),
+        stats=TickerStats(ticker='EMPTY', value=0.0, invested=0.0,
+                          total_return=0.0, xirr=float('nan'),
+                          max_drawdown=0.0, cum_dividends=0.0, rank=2))
+    state = make_state([make_series('AAPL', rank=1), empty])
+    renderer = ChartRenderer(get_theme('midnight'), panels, LANDSCAPE)
+    try:
+        renderer.render(state, tmp_path / 'empty.png')
+        assert renderer._series['EMPTY'].dividend_label.get_text() == ''
+    finally:
+        renderer.close()
+
+
+def test_no_dividend_labels_when_the_dividend_panel_is_off(tmp_path):
+    panels = PanelsConfig(dividend_line=False)
+    renderer = ChartRenderer(get_theme('midnight'), panels, LANDSCAPE)
+    try:
+        renderer.render(default_state(), tmp_path / 'off.png')
+        for artists in renderer._series.values():
+            assert artists.dividend_label is None
+            assert artists.dividend_marker is None
+    finally:
+        renderer.close()
