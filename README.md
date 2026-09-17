@@ -3,6 +3,7 @@
 Generates silent MP4 videos comparing how N investments would actually have performed over a date range, using Yahoo Finance data via `yfinance`.
 
 Each ticker is simulated as a real portfolio rather than a normalized price line: an optional lump sum at the start, optional recurring DCA contributions, and dividends either reinvested or taken as cash. The video animates the portfolio value lines racing left to right against a dashed "money invested" baseline, with a live stats panel, an intro card and a final leaderboard. Every line is direct-labelled at its head with its current amount, including the invested baseline and each dividend line.
+<img width="960" height="540" alt="demo" src="https://github.com/user-attachments/assets/e65718a6-c973-4b2c-82ef-1d0f84992460" />
 
 ## Pipeline
 
