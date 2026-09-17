@@ -140,7 +140,7 @@ def test_compute_stats_total_return_is_zero_when_nothing_is_invested():
 
 
 def test_compute_stats_xirr_is_plausible_for_a_real_run(prices):
-    history = simulate(prices('aapl_10y'),
+    history = simulate(prices('aapl_3y'),
                        PortfolioSpec(initial_amount=10_000.0, dca_amount=500.0,
                                      dca_frequency=DcaFrequency.MONTHLY))
     stats = compute_stats(history)

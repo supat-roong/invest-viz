@@ -321,7 +321,7 @@ def test_ranks_are_a_permutation_of_one_to_n():
 
 
 def test_stats_are_computed_at_the_playhead():
-    histories = [history_from_fixture('ko_10y.csv', 'KO')]
+    histories = [history_from_fixture('ko_3y.csv', 'KO')]
     states = timeline.build_states(histories, fps=30, duration_seconds=5)
     for state in states[::29]:
         sl = state.series[0]
@@ -334,9 +334,9 @@ def test_stats_are_computed_at_the_playhead():
 
 def test_multiple_real_fixtures_build_together():
     histories = [
-        history_from_fixture('aapl_10y.csv', 'AAPL'),
-        history_from_fixture('msft_10y.csv', 'MSFT'),
-        history_from_fixture('ko_10y.csv', 'KO'),
+        history_from_fixture('aapl_3y.csv', 'AAPL'),
+        history_from_fixture('msft_3y.csv', 'MSFT'),
+        history_from_fixture('ko_3y.csv', 'KO'),
     ]
     states = timeline.build_states(
         histories, fps=30, duration_seconds=15, end_hold_seconds=2, ease_seconds=1

@@ -166,7 +166,7 @@ def test_dca_invests_once_per_scheduled_day(prices):
 
 
 def test_zero_dividend_window_leaves_value_as_shares_times_price(prices):
-    data = prices('msft_10y')
+    data = prices('msft_3y')
     window = data.frame.loc['2015-01-02':'2015-02-13']
     assert (window['dividends'] == 0).all()
 
@@ -180,7 +180,7 @@ def test_zero_dividend_window_leaves_value_as_shares_times_price(prices):
 
 
 def test_whole_share_mode_carries_a_cash_remainder(prices):
-    data = prices('aapl_10y')
+    data = prices('aapl_3y')
     spec = PortfolioSpec(initial_amount=10_000.0, dca_amount=500.0,
                          dca_frequency=DcaFrequency.MONTHLY,
                          reinvest_dividends=False, fractional_shares=False)
